@@ -1,0 +1,23 @@
+<launch>
+
+<!--
+  <include file="$(find ueye)/launch/nodelets.launch"/>
+  <param name="/camera_nodelet/pixel_clock" value="33"/>
+  <param name="/camera_nodelet/frame_rate" value="60"/>
+  <param name="/camera_nodelet/color" value="0"/>
+  <param name="/camera_nodelet/gain" value="100"/>
+-->
+
+  <node name="lsd_slam_viewer" pkg="lsd_slam_viewer" type="viewer" output="screen" >
+  </node>
+
+  <!-- ns="$(arg camera)"<arg name="camera" default="usb_cam" /> -->
+  <node name="lsd_slam_core" pkg="lsd_slam_core" type="live_slam" output="screen" >
+    <param name="image" value="/image_raw" /> 
+    <!-- <param name="/camera_info" value="/usb_cam/camera_info" /> -->
+    <param name="_calib" value="$(find rp_camera)/calib/ueye_camera_2_8mm.cfg" />      
+  </node>
+  
+  <!-- rosrun lsd_slam_core live_slam image:=/image_raw _calib:=/home/flluo/ros_ws/packages/rp_camera/calib/ueye_camera_2_8mm.cfg -->
+
+</launch>
