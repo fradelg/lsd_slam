@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(lsd_slam_viewer)
 
-# Set the build type.  Options are:
+# Set default build type.  Options are:
 #  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
 #  Debug          : w/ debug symbols, w/o optimization
 #  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
-set(ROS_BUILD_TYPE Release)
+IF(NOT CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE Release)
+ENDIF(NOT CMAKE_BUILD_TYPE)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -87,6 +89,7 @@ generate_messages(
 #  sensor_msgs
 )
 
+## Generate code for the dynamic reconfigure files
 generate_dynamic_reconfigure_options(cfg/LSDSLAMViewerParams.cfg)
 
 ###################################
@@ -138,7 +141,7 @@ add_executable(viewer
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-add_dependencies(viewer lsd_slam_viewer_generate_messages_cpp)
+add_dependencies(viewer ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(viewer

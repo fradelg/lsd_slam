@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(lsd_slam_core)
 
-# Set the build type. Options are:
-#  Coverage : w/ debug symbols, w/o optimization, w/ code-coverage
-#  Debug : w/ debug symbols, w/o optimization
-#  Release : w/o debug symbols, w/ optimization
+# Set default build type.  Options are:
+#  Coverage       : w/ debug symbols, w/o optimization, w/ code-coverage
+#  Debug          : w/ debug symbols, w/o optimization
+#  Release        : w/o debug symbols, w/ optimization
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
-#  MinSizeRel : w/o debug symbols, w/ optimization, stripped binaries
-set(CMAKE_BUILD_TYPE Release)
+#  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
+IF(NOT CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE Release)
+ENDIF(NOT CMAKE_BUILD_TYPE)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -96,6 +98,7 @@ add_definitions("-DENABLE_SSE")
 #   sensor_msgs
 # )
 
+## Generate code for the dynamic reconfigure files
 generate_dynamic_reconfigure_options(
   cfg/LSDDebugParams.cfg 
   cfg/LSDParams.cfg
@@ -177,7 +180,9 @@ add_executable(dataset src/main_on_images.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(lsd_slam_core_node lsd_slam_core_generate_messages_cpp)
+add_dependencies(lsd_slam ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(live_slam ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(dataset ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(lsd_slam ${FABMAP_LIB} ${G2O_LIBRARIES} ${catkin_LIBRARIES} ${CSPARSE_LIBRARY}) 
