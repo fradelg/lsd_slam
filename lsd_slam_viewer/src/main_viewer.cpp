@@ -173,9 +173,8 @@ int main( int argc, char** argv )
 
 	boost::thread rosThread;
 
-	if(argc > 1)
-	{
-		std::cout << argc << std::endl;
+	if(argc == 2)
+	{		
 		rosThread = boost::thread(rosFileLoop, argc, argv);
 	}
 	else
