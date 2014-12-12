@@ -105,6 +105,11 @@ If you want to use openFABMAP for large loop closure detection, uncomment the fo
 You need to get a full version of OpenCV with nonfree module, which is easiest by compiling your own version. 
 We suggest to use the [2.4.8](https://github.com/Itseez/opencv/releases/tag/2.4.8) version, to assure compatibility with the current indigo open-cv package.
 
+An optional way to install [OpenCV with nonfree modules](https://launchpad.net/~xqms/+archive/ubuntu/opencv-nonfree) without rebuilding from source:
+
+    sudo add-apt-repository ppa:xqms/opencv-nonfree
+    sudo apt-get update 
+    sudo apt-get install libopencv-nonfree-dev
 
 
 
