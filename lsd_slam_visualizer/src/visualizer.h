@@ -26,8 +26,8 @@
 #include <Eigen/Core>
 #include <sensor_msgs/Image.h>
 #include <image_transport/image_transport.h>
-#include "lsd_slam_viewer/keyframeGraphMsg.h"
-#include "lsd_slam_viewer/keyframeMsg.h"
+#include "lsd_slam_msgs/keyframeGraphMsg.h"
+#include "lsd_slam_msgs/keyframeMsg.h"
 #include "geometry_msgs/PoseStamped.h"
 
 
@@ -53,8 +53,8 @@ private:
 		int action,
 		double marker_scale,
 		const Vector3d& color);
-	void frameCb(lsd_slam_viewer::keyframeMsgConstPtr msg);
-	void graphCb(lsd_slam_viewer::keyframeGraphMsgConstPtr msg);
+	void frameCb(lsd_slam_msgs::keyframeMsgConstPtr msg);
+	void graphCb(lsd_slam_msgs::keyframeGraphMsgConstPtr msg);
 	void poseCb(geometry_msgs::PoseStampedConstPtr msg);
 	void debugImgCb(const sensor_msgs::ImageConstPtr& msg);
 

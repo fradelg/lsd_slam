@@ -29,8 +29,8 @@
 #include <qapplication.h>
 
 
-#include "lsd_slam_viewer/keyframeGraphMsg.h"
-#include "lsd_slam_viewer/keyframeMsg.h"
+#include "lsd_slam_msgs/keyframeGraphMsg.h"
+#include "lsd_slam_msgs/keyframeMsg.h"
 
 
 #include "boost/foreach.hpp"
@@ -70,7 +70,7 @@ void dynConfCb(lsd_slam_viewer::LSDSLAMViewerParamsConfig &config, uint32_t leve
 
 }
 
-void frameCb(lsd_slam_viewer::keyframeMsgConstPtr msg)
+void frameCb(lsd_slam_msgs::keyframeMsgConstPtr msg)
 {
 
 	if(msg->time > lastFrameTime) return;
@@ -78,7 +78,7 @@ void frameCb(lsd_slam_viewer::keyframeMsgConstPtr msg)
 	if(viewer != 0)
 		viewer->addFrameMsg(msg);
 }
-void graphCb(lsd_slam_viewer::keyframeGraphMsgConstPtr msg)
+void graphCb(lsd_slam_msgs::keyframeGraphMsgConstPtr msg)
 {
 	if(viewer != 0)
 		viewer->addGraphMsg(msg);
@@ -150,11 +150,11 @@ void rosFileLoop( int argc, char** argv )
 	 {
 
 		 if(m.getTopic() == "/lsd_slam/liveframes" || m.getTopic() == "/lsd_slam/keyframes")
-			 frameCb(m.instantiate<lsd_slam_viewer::keyframeMsg>());
+			 frameCb(m.instantiate<lsd_slam_msgs::keyframeMsg>());
 
 
 		 if(m.getTopic() == "/lsd_slam/graph")
-			 graphCb(m.instantiate<lsd_slam_viewer::keyframeGraphMsg>());
+			 graphCb(m.instantiate<lsd_slam_msgs::keyframeGraphMsg>());
 	 }
 
 	ros::spin();

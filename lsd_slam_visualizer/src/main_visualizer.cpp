@@ -88,7 +88,7 @@ void Visualizer::publishPointMarker(
 	pub.publish(msg);
 }
 
-void Visualizer::frameCb(lsd_slam_viewer::keyframeMsgConstPtr msg)
+void Visualizer::frameCb(lsd_slam_msgs::keyframeMsgConstPtr msg)
 {
 	Vector3d t;
 	t[0] = msg->camToWorld[4];
@@ -109,7 +109,7 @@ void Visualizer::frameCb(lsd_slam_viewer::keyframeMsgConstPtr msg)
 	}
 }
 
-void Visualizer::graphCb(lsd_slam_viewer::keyframeGraphMsgConstPtr msg)
+void Visualizer::graphCb(lsd_slam_msgs::keyframeGraphMsgConstPtr msg)
 {
 }
 

@@ -49,6 +49,7 @@
   <build_depend>roslib</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>image_transport</build_depend>
+  <build_depend>lsd_slam_msgs</build_depend>
   
   <run_depend>cmake_modules</run_depend>
   <run_depend>cv_bridge</run_depend>
@@ -57,6 +58,7 @@
   <run_depend>roslib</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>image_transport</run_depend>
+  <run_depend>lsd_slam_msgs</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

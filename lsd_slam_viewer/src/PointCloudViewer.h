@@ -27,8 +27,8 @@
 #include <vector>
 #include "boost/thread.hpp"
 #include "qevent.h"
-#include "lsd_slam_viewer/keyframeMsg.h"
-#include "lsd_slam_viewer/keyframeGraphMsg.h"
+#include "lsd_slam_msgs/keyframeMsg.h"
+#include "lsd_slam_msgs/keyframeGraphMsg.h"
 
 #include "QGLViewer/keyFrameInterpolator.h"
 
@@ -157,8 +157,8 @@ public:
 
 	void reset();
 
-	void addFrameMsg(lsd_slam_viewer::keyframeMsgConstPtr msg);
-	void addGraphMsg(lsd_slam_viewer::keyframeGraphMsgConstPtr msg);
+	void addFrameMsg(lsd_slam_msgs::keyframeMsgConstPtr msg);
+	void addGraphMsg(lsd_slam_msgs::keyframeGraphMsgConstPtr msg);
 
 
 protected :
