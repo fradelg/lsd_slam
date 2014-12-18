@@ -24,7 +24,8 @@
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 #include <Eigen/Core>
-
+#include <sensor_msgs/Image.h>
+#include <image_transport/image_transport.h>
 #include "lsd_slam_viewer/keyframeGraphMsg.h"
 #include "lsd_slam_viewer/keyframeMsg.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -55,10 +56,12 @@ private:
 	void frameCb(lsd_slam_viewer::keyframeMsgConstPtr msg);
 	void graphCb(lsd_slam_viewer::keyframeGraphMsgConstPtr msg);
 	void poseCb(geometry_msgs::PoseStampedConstPtr msg);
+	void debugImgCb(const sensor_msgs::ImageConstPtr& msg);
 
 	ros::Publisher pub_point_;
 	ros::Subscriber sub_liveFrames_;
 	ros::Subscriber sub_keyFrames_;
 	ros::Subscriber sub_graph_;
 	ros::Subscriber sub_pose_;
+	image_transport::Subscriber sub_it_;
 };

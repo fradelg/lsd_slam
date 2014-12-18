@@ -63,5 +63,7 @@ public:
 
 	virtual void publishDebugInfo(Eigen::Matrix<float, 20, 1> data) {};
 
+	virtual void publishDebugImage(const cv::Mat& debug_image) {};
+
 };
 }

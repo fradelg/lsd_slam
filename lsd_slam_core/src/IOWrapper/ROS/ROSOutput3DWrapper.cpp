@@ -34,6 +34,10 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "GlobalMapping/g2oTypeSim3Sophus.h"
 
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/image_encodings.h>
+#include <cv_bridge/cv_bridge.h>
+
 namespace lsd_slam
 {
 
@@ -58,6 +62,8 @@ ROSOutput3DWrapper::ROSOutput3DWrapper(int width, int height)
 	pose_channel = nh_.resolveName("lsd_slam/pose");
 	pose_publisher = nh_.advertise<geometry_msgs::PoseStamped>(pose_channel,1);
 
+	image_transport::ImageTransport it(nh_);
+	pub_debug_images_ = it.advertise("lsd_slam/debug_image", 1);
 
 	publishLvl=0;
 }
@@ -209,6 +215,19 @@ void ROSOutput3DWrapper::publishDebugInfo(Eigen::Matrix<float, 20, 1> data)
 		msg.data.push_back((float)(data[i]));
 
 	debugInfo_publisher.publish(msg);
+}
+
+void ROSOutput3DWrapper::publishDebugImage(const cv::Mat& debug_image)
+{
+	if(pub_debug_images_.getNumSubscribers() > 0)
+	{
+		cv_bridge::CvImage img_msg;
+		img_msg.header.stamp = ros::Time::now();
+		img_msg.header.frame_id = "/image";
+		img_msg.image = debug_image;
+		img_msg.encoding = sensor_msgs::image_encodings::BGR8;
+		pub_debug_images_.publish(img_msg.toImageMsg());
+	}
 }
 
 }

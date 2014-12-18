@@ -165,7 +165,7 @@ SlamSystem::~SlamSystem()
 	FrameMemory::getInstance().releaseBuffes();
 
 
-	Util::closeAllWindows();
+	// Util::closeAllWindows();
 }
 
 void SlamSystem::setVisualization(Output3DWrapper* outputWrapper)
@@ -685,9 +685,10 @@ void SlamSystem::debugDisplayDepthMap()
 	if(onSceenInfoDisplay)
 		printMessageOnCVImage(map->debugImageDepth, buf1, buf2);
 	if (displayDepthMap)
-		Util::displayImage( "DebugWindow DEPTH", map->debugImageDepth, false );
+		// Util::displayImage( "DebugWindow DEPTH", map->debugImageDepth, false );
+		outputWrapper->publishDebugImage(map->debugImageDepth);
 
-	int pressedKey = Util::waitKey(1);
+	int pressedKey = getKeyboardInput(); // Util::waitKey(1);
 	handleKey(pressedKey);
 }
 
@@ -895,6 +896,15 @@ void SlamSystem::trackFrame(uchar* image, unsigned int frameID, bool blockUntilM
 	if(!trackingIsGood)
 	{
 		relocalizer.updateCurrentFrame(trackingNewFrame);
+
+		if (displayDepthMap)
+		{
+			cv::Mat tmp_img(trackingNewFrame->height(), trackingNewFrame->width(), CV_8UC1, image);
+			cv::cvtColor(tmp_img, tmp_img, CV_GRAY2RGB);
+			outputWrapper->publishDebugImage(tmp_img);
+		}
+		int pressedKey = getKeyboardInput(); 
+		handleKey(pressedKey);
 
 		unmappedTrackedFramesMutex.lock();
 		unmappedTrackedFramesSignal.notify_one();

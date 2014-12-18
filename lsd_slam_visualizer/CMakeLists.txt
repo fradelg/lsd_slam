@@ -114,14 +114,14 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(visualizer_node src/main_visualizer.cpp)
+add_executable(visualizer src/main_visualizer.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(lsd_slam_prober_node lsd_slam_prober_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(visualizer_node
+target_link_libraries(visualizer
   ${catkin_LIBRARIES}
 )
 

@@ -38,6 +38,10 @@
 #include "rosbag/query.h"
 #include "rosbag/view.h"
 
+#include <sensor_msgs/Image.h>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/highgui/highgui.hpp>
 
 PointCloudViewer* viewer = 0;
 
@@ -80,7 +84,19 @@ void graphCb(lsd_slam_viewer::keyframeGraphMsgConstPtr msg)
 		viewer->addGraphMsg(msg);
 }
 
-
+// have not work for: (viewer:30848): Gtk-WARNING **: gtk_disable_setlocale() must be called before gtk_init()
+void debugImgCb(const sensor_msgs::ImageConstPtr& msg)
+{
+	cv::Mat img;
+	try {
+		img = cv_bridge::toCvShare(msg, "bgr8")->image;
+	} catch (cv_bridge::Exception& e) {
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+	}
+	
+	cv::imshow("Debug Image", img);
+	cv::waitKey(1);
+}
 
 void rosThreadLoop( int argc, char** argv )
 {
@@ -100,9 +116,11 @@ void rosThreadLoop( int argc, char** argv )
 	ros::Subscriber liveFrames_sub = nh.subscribe(nh.resolveName("lsd_slam/liveframes"),1, frameCb);
 	ros::Subscriber keyFrames_sub = nh.subscribe(nh.resolveName("lsd_slam/keyframes"),20, frameCb);
 	ros::Subscriber graph_sub       = nh.subscribe(nh.resolveName("lsd_slam/graph"),10, graphCb);
+	// image_transport::ImageTransport it(nh);
+	// image_transport::Subscriber sub_it = it.subscribe("lsd_slam/debug_image", 1, debugImgCb);
 
 	ros::spin();
-
+	cv::destroyAllWindows();
 	ros::shutdown();
 
 	printf("Exiting ROS thread\n");

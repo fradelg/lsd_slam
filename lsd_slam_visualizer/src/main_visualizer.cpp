@@ -22,6 +22,8 @@
 #include "boost/foreach.hpp"
 // #include "sophus/sim3.hpp"
 // #include "sophus/se3.hpp"
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/highgui/highgui.hpp>
 #include "visualizer.h"
 
 
@@ -35,6 +37,7 @@ Visualizer::Visualizer()
 
 Visualizer::~Visualizer()
 {
+	cv::destroyAllWindows();
 }
 
 void Visualizer::init()
@@ -48,6 +51,9 @@ void Visualizer::init()
 	// sub_keyFrames_  = nh.subscribe("lsd_slam/keyframes",20, &Visualizer::frameCb, this);
 	// sub_graph_      = nh.subscribe("lsd_slam/graph",10, &Visualizer::graphCb, this);
 	// sub_pose_       = nh.subscribe("lsd_slam/pose",10, &Visualizer::poseCb, this);
+	// 
+	image_transport::ImageTransport it(nh);
+    sub_it_ = it.subscribe("lsd_slam/debug_image", 1, &Visualizer::debugImgCb, this);
 }
 
 // ref. https://github.com/uzh-rpg/rpg_vikit
@@ -126,6 +132,19 @@ void Visualizer::poseCb(geometry_msgs::PoseStampedConstPtr msg)
 	//         0.006, 
 	//         msg->isKeyframe? Vector3d(0.5,0.,0.) : Vector3d(0.,0.,0.5));
 	// }
+}
+
+void Visualizer::debugImgCb(const sensor_msgs::ImageConstPtr& msg)
+{
+	cv::Mat img;
+	try {
+		img = cv_bridge::toCvShare(msg, "bgr8")->image;
+	} catch (cv_bridge::Exception& e) {
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+	}
+	
+	cv::imshow("Debug Image", img);
+	cv::waitKey(1);
 }
 
 int main( int argc, char** argv )

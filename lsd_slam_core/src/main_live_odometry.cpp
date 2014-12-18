@@ -35,7 +35,7 @@
 using namespace lsd_slam;
 int main( int argc, char** argv )
 {
-    XInitThreads();
+    // XInitThreads();
 
 	ros::init(argc, argv, "LSD_SLAM");
 

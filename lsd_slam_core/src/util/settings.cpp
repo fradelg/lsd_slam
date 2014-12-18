@@ -21,6 +21,7 @@
 #include "util/settings.h"
 #include <opencv2/opencv.hpp>
 #include <boost/bind.hpp>
+#include <termios.h>
 
 
 
@@ -157,6 +158,23 @@ void handleKey(char k)
 		break;
 	}
 
+}
+
+int getKeyboardInput(void)
+{
+	struct termios oldt, newt;
+	tcgetattr( STDIN_FILENO, &oldt);           // save old settings
+	newt = oldt;
+	newt.c_lflag &= ~(ICANON);                 // disable buffering
+	newt.c_lflag &= ~ECHO;					   // set echo mode
+	newt.c_cc[VMIN] = 0; 					   
+	newt.c_cc[VTIME] = 0;      
+	tcsetattr( STDIN_FILENO, TCSANOW, &newt);  // apply new settings
+
+	int c = getchar();  // read character (non-blocking)
+
+	tcsetattr( STDIN_FILENO, TCSANOW, &oldt);  // restore old settings
+	return c;
 }
 
 }

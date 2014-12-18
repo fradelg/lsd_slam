@@ -22,7 +22,7 @@
 
 #include <ros/ros.h>
 #include "IOWrapper/Output3DWrapper.h"
-
+#include <image_transport/image_transport.h>
 
 namespace lsd_slam
 {
@@ -77,6 +77,7 @@ public:
 
 	virtual void publishDebugInfo(Eigen::Matrix<float, 20, 1> data);
 
+	virtual void publishDebugImage(const cv::Mat& debug_image);
 
 	int publishLvl;
 	
@@ -95,9 +96,10 @@ private:
 	std::string debugInfo_channel;
 	ros::Publisher debugInfo_publisher;
 
-
 	std::string pose_channel;
 	ros::Publisher pose_publisher;
+
+	image_transport::Publisher pub_debug_images_;
 
 	ros::NodeHandle nh_;
 };

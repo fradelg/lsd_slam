@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   sensor_msgs
   message_generation
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions

@@ -404,4 +404,6 @@ public:
 extern RunningStats runningStats;
 
 void handleKey(char k);
+int getKeyboardInput(void);
+
 }
