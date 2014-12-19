@@ -132,6 +132,8 @@ void PointCloudViewer::addFrameMsg(lsd_slam_msgs::keyframeMsgConstPtr msg)
 		currentCamDisplay->setFrom(msg);
 		lastAnimTime = lastCamTime = msg->time;
 		lastCamID = msg->id;
+		if(showCurrentCamera)
+			currentCamDisplay->cam_pose.push_back(currentCamDisplay->camToWorld);
 	}
 	else
 		graphDisplay->addMsg(msg);
@@ -232,7 +234,10 @@ void PointCloudViewer::draw()
 
 
 	if(showCurrentCamera)
+	{
 		currentCamDisplay->drawCam(2*lineTesselation, 0);
+		currentCamDisplay->drawTrajectory(2*lineTesselation, 0);
+	}
 
 	if(showCurrentPointcloud)
 		currentCamDisplay->drawPC(pointTesselation, 1);

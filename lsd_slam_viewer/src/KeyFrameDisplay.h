@@ -58,6 +58,7 @@ public:
 	void drawCam(float lineWidth = 1, float* color = 0);
 	void drawPC(float pointSize = 1, float alpha = 1);
 	void refreshPC();
+	void drawTrajectory(float lineWidth = 1, float* color = 0);
 
 	int flushPC(std::ofstream* f);
 
@@ -72,6 +73,7 @@ public:
 	// camera pose
 	// may be updated by kf-graph.
 	Sophus::Sim3f camToWorld;
+	std::vector<Sophus::Sim3f> cam_pose;
 
 private:
 	// camera parameter

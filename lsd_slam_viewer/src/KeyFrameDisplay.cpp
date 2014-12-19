@@ -59,6 +59,9 @@ KeyFrameDisplay::~KeyFrameDisplay()
 
 	if(originalInput != 0)
 		delete[] originalInput;
+
+	// for(unsigned int i=0;i<cam_pose.size();i++)
+	// 	delete cam_pose[i];
 }
 
 
@@ -399,3 +402,25 @@ void KeyFrameDisplay::drawPC(float pointSize, float alpha)
 	}
 }
 
+void KeyFrameDisplay::drawTrajectory(float lineWidth, float* color)
+{
+	if (cam_pose.size() >= 2)
+	{
+		if(color == 0)
+			glColor3f(0,0,0);
+		else
+			glColor3f(color[0],color[1],color[2]);
+
+		glLineWidth(lineWidth);
+		glBegin(GL_LINES);
+		for(unsigned int i=0;i<cam_pose.size() - 1;i++)
+		{
+			Sophus::Vector3f t = cam_pose[i].translation();
+			glVertex3f((GLfloat) t[0],(GLfloat) t[1], (GLfloat) t[2]);
+
+			t = cam_pose[i+1].translation();
+			glVertex3f((GLfloat) t[0],(GLfloat) t[1], (GLfloat) t[2]);
+		}
+		glEnd();
+	}
+}
