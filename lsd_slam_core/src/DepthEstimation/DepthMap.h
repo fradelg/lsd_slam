@@ -92,8 +92,6 @@ public:
 	float nAvgUpdate, nAvgCreate, nAvgFinalize;
 	float nAvgObserve, nAvgRegularize, nAvgPropagate, nAvgFillHoles, nAvgSetDepth;
 
-
-
 	// pointer to global keyframe graph
 	IndexThreadReduce threadReducer;
 
@@ -138,7 +136,6 @@ private:
 
 
 	void propagateDepth(Frame* new_keyframe);
-	
 
 	void observeDepth();
 	void observeDepthRow(int yMin, int yMax, RunningStats* stats);
@@ -150,12 +147,10 @@ private:
 	void regularizeDepthMap(bool removeOcclusion, int validityTH);
 	template<bool removeOcclusions> void regularizeDepthMapRow(int validityTH, int yMin, int yMax, RunningStats* stats);
 
-
 	void buildRegIntegralBuffer();
 	void buildRegIntegralBufferRow1(int yMin, int yMax, RunningStats* stats);
 	void regularizeDepthMapFillHoles();
 	void regularizeDepthMapFillHolesRow(int yMin, int yMax, RunningStats* stats);
-
 
 	void resetCounters();
 

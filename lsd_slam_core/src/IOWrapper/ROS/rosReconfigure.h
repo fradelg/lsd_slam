@@ -40,7 +40,6 @@ void dynConfCbDebug(lsd_slam_core::LSDDebugParamsConfig &config, uint32_t level)
 	freeDebugParam4 = config.freeDebugParam4;
 	freeDebugParam5 = config.freeDebugParam5;
 
-
 	plotStereoImages = config.plotStereoImages;
 	plotTrackingIterationInfo = config.plotTrackingIterationInfo;
 	plotTracking = config.plotTracking;

@@ -1,8 +1,9 @@
 /**
 * This file is part of LSD-SLAM.
 *
-* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam> 
+* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University
+*of Munich)
+* For more information see <http://vision.in.tum.de/lsdslam>
 *
 * LSD-SLAM is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -33,48 +34,41 @@
 
 #include "util/Undistorter.h"
 
-
-namespace lsd_slam
-{
-
-
+namespace lsd_slam {
 
 /**
  * Image stream provider using ROS messages.
  */
-class ROSImageStreamThread : public InputImageStream
-{
-public:
-	ROSImageStreamThread();
-	~ROSImageStreamThread();
-	
-	/**
-	 * Starts the thread.
-	 */
-	void run();
-	
-	void setCalibration(std::string file);
+class ROSImageStreamThread : public InputImageStream {
+ public:
+  ROSImageStreamThread();
+  ~ROSImageStreamThread();
 
-	/**
-	 * Thread main function.
-	 */
-	void operator()();
-	
-	// get called on ros-message callbacks
-	void vidCb(const sensor_msgs::ImageConstPtr img);
-	void infoCb(const sensor_msgs::CameraInfoConstPtr info);
+  /**
+   * Starts the thread.
+   */
+  void run();
 
-private:
+  void setCalibration(std::string file);
 
-	bool haveCalib;
-	Undistorter* undistorter;
+  /**
+   * Thread main function.
+   */
+  void operator()();
 
-	ros::NodeHandle nh_;
+  // get called on ros-message callbacks
+  void vidCb(const sensor_msgs::ImageConstPtr img);
+  void infoCb(const sensor_msgs::CameraInfoConstPtr info);
 
-	std::string vid_channel;
-	ros::Subscriber vid_sub;
+ private:
+  bool haveCalib;
+  Undistorter* undistorter;
 
-	int lastSEQ;
+  ros::NodeHandle nh_;
+
+  std::string vid_channel;
+  ros::Subscriber vid_sub;
+
+  int lastSEQ;
 };
-
 }

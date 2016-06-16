@@ -2,7 +2,7 @@
 * This file is part of LSD-SLAM.
 *
 * Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam> 
+* For more information see <http://vision.in.tum.de/lsdslam>
 *
 * LSD-SLAM is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,62 +18,51 @@
 * along with dvo. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #ifndef KEYFRAMEGRAPHDISPLAY_H_
 #define KEYFRAMEGRAPHDISPLAY_H_
 
-
-#include "lsd_slam_msgs/keyframeGraphMsg.h"
-#include "lsd_slam_msgs/keyframeMsg.h"
-#include "boost/thread.hpp"
+#include <lsd_slam_msgs/keyframeGraphMsg.h>
+#include <lsd_slam_msgs/keyframeMsg.h>
+#include <mutex>
 
 class KeyFrameDisplay;
 
-
-struct GraphConstraint
-{
-	int from;
-	int to;
-	float err;
+struct GraphConstraint {
+  int from;
+  int to;
+  float err;
 };
 
-
-struct GraphConstraintPt
-{
-	KeyFrameDisplay* from;
-	KeyFrameDisplay* to;
-	float err;
+struct GraphConstraintPt {
+  KeyFrameDisplay* from;
+  KeyFrameDisplay* to;
+  float err;
 };
 
-struct GraphFramePose
-{
-	int id;
-	float camToWorld[7];
+struct GraphFramePose {
+  int id;
+  float camToWorld[7];
 };
-
 
 class KeyFrameGraphDisplay {
 public:
-	KeyFrameGraphDisplay();
-	virtual ~KeyFrameGraphDisplay();
+  KeyFrameGraphDisplay();
+  virtual ~KeyFrameGraphDisplay();
 
-	void draw();
+  void draw();
 
-	void addMsg(lsd_slam_msgs::keyframeMsgConstPtr msg);
-	void addGraphMsg(lsd_slam_msgs::keyframeGraphMsgConstPtr msg);
+  void addMsg(lsd_slam_msgs::keyframeMsgConstPtr msg);
+  void addGraphMsg(lsd_slam_msgs::keyframeGraphMsgConstPtr msg);
 
+  bool flushPointcloud;
+  bool printNumbers;
 
-
-	bool flushPointcloud;
-	bool printNumbers;
 private:
-	std::map<int, KeyFrameDisplay*> keyframesByID;
-	std::vector<KeyFrameDisplay*> keyframes;
-	std::vector<GraphConstraintPt> constraints;
+  std::map<int, KeyFrameDisplay*> keyframesByID;
+  std::vector<KeyFrameDisplay*> keyframes;
+  std::vector<GraphConstraintPt> constraints;
 
-	boost::mutex dataMutex;
-
+  std::mutex dataMutex;
 };
 
 #endif /* KEYFRAMEGRAPHDISPLAY_H_ */

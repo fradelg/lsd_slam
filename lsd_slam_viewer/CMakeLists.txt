@@ -8,7 +8,7 @@ project(lsd_slam_viewer)
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 IF(NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE Release)
+    SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
 ## Find catkin macros and libraries
@@ -27,76 +27,23 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-set(QT_USE_QTOPENGL TRUE)
-set(QT_USE_QTXML TRUE)
 find_package(cmake_modules REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Eigen3 REQUIRED)
 include(cmake/FindQGLViewer.cmake)
-#find_package(GLUT REQUIRED)
 
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
-
-################################################
-## Declare ROS messages, services and actions ##
-################################################
-
-## To declare and build messages, services or actions from within this
-## package, follow these steps:
-## * Let MSG_DEP_SET be the set of packages whose message types you use in
-##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
-## * In the file package.xml:
-##   * add a build_depend and a run_depend tag for each package in MSG_DEP_SET
-##   * If MSG_DEP_SET isn't empty the following dependencies might have been
-##     pulled in transitively but can be declared for certainty nonetheless:
-##     * add a build_depend tag for "message_generation"
-##     * add a run_depend tag for "message_runtime"
-## * In this file (CMakeLists.txt):
-##   * add "message_generation" and every package in MSG_DEP_SET to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * add "message_runtime" and every package in MSG_DEP_SET to
-##     catkin_package(CATKIN_DEPENDS ...)
-##   * uncomment the add_*_files sections below as needed
-##     and list every .msg/.srv/.action file to be processed
-##   * uncomment the generate_messages entry below
-##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
-
-## Generate messages in the 'msg' folder
-#add_message_files(
-#  FILES
-#  keyframeGraphMsg.msg
-#  keyframeMsg.msg
-#)
-
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
-
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
-
-## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#  DEPENDENCIES
-#  sensor_msgs
-#)
-
-## Generate code for the dynamic reconfigure files
-generate_dynamic_reconfigure_options(cfg/LSDSLAMViewerParams.cfg)
+# SSE flags
+set(QT_USE_QTOPENGL TRUE)
+set(QT_USE_QTXML TRUE)
+set(CMAKE_CXX_FLAGS "${SSE_FLAGS} -std=c++11")
 
 ###################################
 ## catkin specific configuration ##
 ###################################
+
+## Generate code for the dynamic reconfigure files
+generate_dynamic_reconfigure_options(cfg/LsdViewerParams.cfg)
+
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 ## INCLUDE_DIRS: uncomment this if you package contains header files
@@ -104,10 +51,8 @@ generate_dynamic_reconfigure_options(cfg/LSDSLAMViewerParams.cfg)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES lsd_slam_viewer
-#  CATKIN_DEPENDS cv_bridge dynamic_reconfigure rosbag roslib sensor_msgs
-#  DEPENDS system_lib
+  CATKIN_DEPENDS cv_bridge dynamic_reconfigure rosbag roslib sensor_msgs image_transport lsd_slam_msgs
+  DEPENDS system_lib
 )
 
 ###########
@@ -116,24 +61,16 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${QT_INCLUDES} 
   ${EIGEN3_INCLUDE_DIR} 
   ${QGLVIEWER_INCLUDE_DIR}
-  thirdparty/Sophus
   ${OpenGL_INCLUDE_DIRS}
-#  ${GLUT_INCLUDE_DIRS}
+  thirdparty/Sophus
 )
 
-## Declare a cpp library
-# add_library(lsd_slam_viewer
-#   src/${PROJECT_NAME}/lsd_slam_viewer.cpp
-# )
-
-## Declare a cpp executable
-add_executable(viewer 
+set(SOURCES
   src/main_viewer.cpp
   src/PointCloudViewer.cpp
   src/KeyFrameDisplay.cpp
@@ -141,17 +78,19 @@ add_executable(viewer
   src/settings.cpp
 )
 
+## Declare a cpp executable
+add_executable(viewer ${SOURCES})
+
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-add_dependencies(viewer ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_dependencies(viewer ${PROJECT_NAME}_gencfg)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(viewer
-  ${catkin_LIBRARIES}
   ${QT_LIBRARIES} 
   ${QGLVIEWER_LIBRARY}
   ${OPENGL_LIBRARIES}
-#  ${GLUT_LIBRARY}
+  ${catkin_LIBRARIES}
 )
 
 #############
@@ -169,11 +108,11 @@ target_link_libraries(viewer
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS lsd_slam_viewer lsd_slam_viewer_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS viewer
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/

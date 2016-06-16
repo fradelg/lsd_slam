@@ -23,7 +23,6 @@
 #include <ros/ros.h>
 #include "util/settings.h"
 
-
 #include "std_msgs/Float32MultiArray.h"
 #include "lsd_slam_msgs/keyframeGraphMsg.h"
 #include "lsd_slam_msgs/keyframeMsg.h"
@@ -38,196 +37,182 @@
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
 
-namespace lsd_slam
-{
-
+namespace lsd_slam {
 
 ROSOutput3DWrapper::ROSOutput3DWrapper(int width, int height)
 {
-	this->width = width;
-	this->height = height;
+    this->width = width;
+    this->height = height;
 
-	liveframe_channel = nh_.resolveName("lsd_slam/liveframes");
-	liveframe_publisher = nh_.advertise<lsd_slam_msgs::keyframeMsg>(liveframe_channel,1);
+    liveframe_channel = nh_.resolveName("lsd_slam/liveframes");
+    liveframe_publisher = nh_.advertise<lsd_slam_msgs::keyframeMsg>(liveframe_channel, 1);
 
-	keyframe_channel = nh_.resolveName("lsd_slam/keyframes");
-	keyframe_publisher = nh_.advertise<lsd_slam_msgs::keyframeMsg>(keyframe_channel,1);
+    keyframe_channel = nh_.resolveName("lsd_slam/keyframes");
+    keyframe_publisher = nh_.advertise<lsd_slam_msgs::keyframeMsg>(keyframe_channel, 1);
 
-	graph_channel = nh_.resolveName("lsd_slam/graph");
-	graph_publisher = nh_.advertise<lsd_slam_msgs::keyframeGraphMsg>(graph_channel,1);
+    graph_channel = nh_.resolveName("lsd_slam/graph");
+    graph_publisher = nh_.advertise<lsd_slam_msgs::keyframeGraphMsg>(graph_channel, 1);
 
-	debugInfo_channel = nh_.resolveName("lsd_slam/debug");
-	debugInfo_publisher = nh_.advertise<std_msgs::Float32MultiArray>(debugInfo_channel,1);
+    debugInfo_channel = nh_.resolveName("lsd_slam/debug");
+    debugInfo_publisher = nh_.advertise<std_msgs::Float32MultiArray>(debugInfo_channel, 1);
 
-	pose_channel = nh_.resolveName("lsd_slam/pose");
-	pose_publisher = nh_.advertise<geometry_msgs::PoseStamped>(pose_channel,1);
+    pose_channel = nh_.resolveName("lsd_slam/pose");
+    pose_publisher = nh_.advertise<geometry_msgs::PoseStamped>(pose_channel, 1);
 
-	image_transport::ImageTransport it(nh_);
-	pub_debug_images_ = it.advertise("lsd_slam/debug_image", 1);
+    image_transport::ImageTransport it(nh_);
+    pub_debug_images_ = it.advertise("lsd_slam/debug_image", 1);
 
-	publishLvl=0;
+    publishLvl = 0;
 }
 
 ROSOutput3DWrapper::~ROSOutput3DWrapper()
 {
 }
 
-
 void ROSOutput3DWrapper::publishKeyframe(Frame* f)
 {
-	lsd_slam_msgs::keyframeMsg fMsg;
+    lsd_slam_msgs::keyframeMsg fMsg;
 
+    boost::shared_lock<boost::shared_mutex> lock = f->getActiveLock();
 
-	boost::shared_lock<boost::shared_mutex> lock = f->getActiveLock();
+    fMsg.id = f->id();
+    fMsg.time = f->timestamp();
+    fMsg.isKeyframe = true;
 
-	fMsg.id = f->id();
-	fMsg.time = f->timestamp();
-	fMsg.isKeyframe = true;
+    int w = f->width(publishLvl);
+    int h = f->height(publishLvl);
 
-	int w = f->width(publishLvl);
-	int h = f->height(publishLvl);
+    memcpy(fMsg.camToWorld.data(), f->getScaledCamToWorld().cast<float>().data(), sizeof(float) * 7);
+    fMsg.fx = f->fx(publishLvl);
+    fMsg.fy = f->fy(publishLvl);
+    fMsg.cx = f->cx(publishLvl);
+    fMsg.cy = f->cy(publishLvl);
+    fMsg.width = w;
+    fMsg.height = h;
 
-	memcpy(fMsg.camToWorld.data(),f->getScaledCamToWorld().cast<float>().data(),sizeof(float)*7);
-	fMsg.fx = f->fx(publishLvl);
-	fMsg.fy = f->fy(publishLvl);
-	fMsg.cx = f->cx(publishLvl);
-	fMsg.cy = f->cy(publishLvl);
-	fMsg.width = w;
-	fMsg.height = h;
+    fMsg.pointcloud.resize(w * h * sizeof(InputPointDense));
 
+    InputPointDense* pc = (InputPointDense*)fMsg.pointcloud.data();
 
-	fMsg.pointcloud.resize(w*h*sizeof(InputPointDense));
+    const float* idepth = f->idepth(publishLvl);
+    const float* idepthVar = f->idepthVar(publishLvl);
+    const float* color = f->image(publishLvl);
 
-	InputPointDense* pc = (InputPointDense*)fMsg.pointcloud.data();
+    for (int idx = 0; idx < w * h; idx++) {
+        pc[idx].idepth = idepth[idx];
+        pc[idx].idepth_var = idepthVar[idx];
+        pc[idx].color[0] = color[idx];
+        pc[idx].color[1] = color[idx];
+        pc[idx].color[2] = color[idx];
+        pc[idx].color[3] = color[idx];
+    }
 
-	const float* idepth = f->idepth(publishLvl);
-	const float* idepthVar = f->idepthVar(publishLvl);
-	const float* color = f->image(publishLvl);
-
-	for(int idx=0;idx < w*h; idx++)
-	{
-		pc[idx].idepth = idepth[idx];
-		pc[idx].idepth_var = idepthVar[idx];
-		pc[idx].color[0] = color[idx];
-		pc[idx].color[1] = color[idx];
-		pc[idx].color[2] = color[idx];
-		pc[idx].color[3] = color[idx];
-	}
-
-	keyframe_publisher.publish(fMsg);
+    keyframe_publisher.publish(fMsg);
 }
 
 void ROSOutput3DWrapper::publishTrackedFrame(Frame* kf)
 {
-	lsd_slam_msgs::keyframeMsg fMsg;
+    lsd_slam_msgs::keyframeMsg fMsg;
 
+    fMsg.id = kf->id();
+    fMsg.time = kf->timestamp();
+    fMsg.isKeyframe = false;
 
-	fMsg.id = kf->id();
-	fMsg.time = kf->timestamp();
-	fMsg.isKeyframe = false;
+    memcpy(fMsg.camToWorld.data(), kf->getScaledCamToWorld().cast<float>().data(), sizeof(float) * 7);
+    fMsg.fx = kf->fx(publishLvl);
+    fMsg.fy = kf->fy(publishLvl);
+    fMsg.cx = kf->cx(publishLvl);
+    fMsg.cy = kf->cy(publishLvl);
+    fMsg.width = kf->width(publishLvl);
+    fMsg.height = kf->height(publishLvl);
 
+    fMsg.pointcloud.clear();
 
-	memcpy(fMsg.camToWorld.data(),kf->getScaledCamToWorld().cast<float>().data(),sizeof(float)*7);
-	fMsg.fx = kf->fx(publishLvl);
-	fMsg.fy = kf->fy(publishLvl);
-	fMsg.cx = kf->cx(publishLvl);
-	fMsg.cy = kf->cy(publishLvl);
-	fMsg.width = kf->width(publishLvl);
-	fMsg.height = kf->height(publishLvl);
+    liveframe_publisher.publish(fMsg);
 
-	fMsg.pointcloud.clear();
+    SE3 camToWorld = se3FromSim3(kf->getScaledCamToWorld());
 
-	liveframe_publisher.publish(fMsg);
+    geometry_msgs::PoseStamped pMsg;
 
+    pMsg.pose.position.x = camToWorld.translation()[0];
+    pMsg.pose.position.y = camToWorld.translation()[1];
+    pMsg.pose.position.z = camToWorld.translation()[2];
+    pMsg.pose.orientation.x = camToWorld.so3().unit_quaternion().x();
+    pMsg.pose.orientation.y = camToWorld.so3().unit_quaternion().y();
+    pMsg.pose.orientation.z = camToWorld.so3().unit_quaternion().z();
+    pMsg.pose.orientation.w = camToWorld.so3().unit_quaternion().w();
 
-	SE3 camToWorld = se3FromSim3(kf->getScaledCamToWorld());
+    if (pMsg.pose.orientation.w < 0) {
+        pMsg.pose.orientation.x *= -1;
+        pMsg.pose.orientation.y *= -1;
+        pMsg.pose.orientation.z *= -1;
+        pMsg.pose.orientation.w *= -1;
+    }
 
-	geometry_msgs::PoseStamped pMsg;
-
-	pMsg.pose.position.x = camToWorld.translation()[0];
-	pMsg.pose.position.y = camToWorld.translation()[1];
-	pMsg.pose.position.z = camToWorld.translation()[2];
-	pMsg.pose.orientation.x = camToWorld.so3().unit_quaternion().x();
-	pMsg.pose.orientation.y = camToWorld.so3().unit_quaternion().y();
-	pMsg.pose.orientation.z = camToWorld.so3().unit_quaternion().z();
-	pMsg.pose.orientation.w = camToWorld.so3().unit_quaternion().w();
-
-	if (pMsg.pose.orientation.w < 0)
-	{
-		pMsg.pose.orientation.x *= -1;
-		pMsg.pose.orientation.y *= -1;
-		pMsg.pose.orientation.z *= -1;
-		pMsg.pose.orientation.w *= -1;
-	}
-
-	pMsg.header.stamp = ros::Time(kf->timestamp());
-	pMsg.header.frame_id = "world";
-	pose_publisher.publish(pMsg);
+    pMsg.header.stamp = ros::Time(kf->timestamp());
+    pMsg.header.frame_id = "world";
+    pose_publisher.publish(pMsg);
 }
-
-
 
 void ROSOutput3DWrapper::publishKeyframeGraph(KeyFrameGraph* graph)
 {
-	lsd_slam_msgs::keyframeGraphMsg gMsg;
+    lsd_slam_msgs::keyframeGraphMsg gMsg;
 
-	graph->edgesListsMutex.lock();
-	gMsg.numConstraints = graph->edgesAll.size();
-	gMsg.constraintsData.resize(gMsg.numConstraints * sizeof(GraphConstraint));
-	GraphConstraint* constraintData = (GraphConstraint*)gMsg.constraintsData.data();
-	for(unsigned int i=0;i<graph->edgesAll.size();i++)
-	{
-		constraintData[i].from = graph->edgesAll[i]->firstFrame->id();
-		constraintData[i].to = graph->edgesAll[i]->secondFrame->id();
-		Sophus::Vector7d err = graph->edgesAll[i]->edge->error();
-		constraintData[i].err = sqrt(err.dot(err));
-	}
-	graph->edgesListsMutex.unlock();
+    graph->edgesListsMutex.lock();
+    gMsg.numConstraints = graph->edgesAll.size();
+    gMsg.constraintsData.resize(gMsg.numConstraints * sizeof(GraphConstraint));
+    GraphConstraint* constraintData = (GraphConstraint*)gMsg.constraintsData.data();
+    for (unsigned int i = 0; i < graph->edgesAll.size(); i++) {
+        constraintData[i].from = graph->edgesAll[i]->firstFrame->id();
+        constraintData[i].to = graph->edgesAll[i]->secondFrame->id();
+        Sophus::Vector7d err = graph->edgesAll[i]->edge->error();
+        constraintData[i].err = sqrt(err.dot(err));
+    }
 
-	graph->keyframesAllMutex.lock_shared();
-	gMsg.numFrames = graph->keyframesAll.size();
-	gMsg.frameData.resize(gMsg.numFrames * sizeof(GraphFramePose));
-	GraphFramePose* framePoseData = (GraphFramePose*)gMsg.frameData.data();
-	for(unsigned int i=0;i<graph->keyframesAll.size();i++)
-	{
-		framePoseData[i].id = graph->keyframesAll[i]->id();
-		memcpy(framePoseData[i].camToWorld, graph->keyframesAll[i]->getScaledCamToWorld().cast<float>().data(),sizeof(float)*7);
-	}
-	graph->keyframesAllMutex.unlock_shared();
+    graph->edgesListsMutex.unlock();
+    graph->keyframesAllMutex.lock_shared();
 
-	graph_publisher.publish(gMsg);
+    gMsg.numFrames = graph->keyframesAll.size();
+    gMsg.frameData.resize(gMsg.numFrames * sizeof(GraphFramePose));
+
+    GraphFramePose* framePoseData = (GraphFramePose*)gMsg.frameData.data();
+    for (unsigned int i = 0; i < graph->keyframesAll.size(); i++) {
+        framePoseData[i].id = graph->keyframesAll[i]->id();
+        memcpy(framePoseData[i].camToWorld, graph->keyframesAll[i]->getScaledCamToWorld().cast<float>().data(), sizeof(float)*7);
+    }
+    graph->keyframesAllMutex.unlock_shared();
+
+    graph_publisher.publish(gMsg);
 }
 
-void ROSOutput3DWrapper::publishTrajectory(std::vector<Eigen::Matrix<float, 3, 1>> trajectory, std::string identifier)
+void ROSOutput3DWrapper::publishTrajectory(std::vector<Eigen::Matrix<float, 3, 1> > trajectory, std::string identifier)
 {
-	// unimplemented ... do i need it?
+    // unimplemented ... do i need it?
 }
 
 void ROSOutput3DWrapper::publishTrajectoryIncrement(Eigen::Matrix<float, 3, 1> pt, std::string identifier)
 {
-	// unimplemented ... do i need it?
+    // unimplemented ... do i need it?
 }
 
 void ROSOutput3DWrapper::publishDebugInfo(Eigen::Matrix<float, 20, 1> data)
 {
-	std_msgs::Float32MultiArray msg;
-	for(int i=0;i<20;i++)
-		msg.data.push_back((float)(data[i]));
+    std_msgs::Float32MultiArray msg;
+    for (int i = 0; i < 20; i++)
+        msg.data.push_back((float)(data[i]));
 
-	debugInfo_publisher.publish(msg);
+    debugInfo_publisher.publish(msg);
 }
 
 void ROSOutput3DWrapper::publishDebugImage(const cv::Mat& debug_image)
 {
-	if(pub_debug_images_.getNumSubscribers() > 0)
-	{
-		cv_bridge::CvImage img_msg;
-		img_msg.header.stamp = ros::Time::now();
-		img_msg.header.frame_id = "/image";
-		img_msg.image = debug_image;
-		img_msg.encoding = sensor_msgs::image_encodings::BGR8;
-		pub_debug_images_.publish(img_msg.toImageMsg());
-	}
+    if (pub_debug_images_.getNumSubscribers() > 0) {
+        cv_bridge::CvImage img_msg;
+        img_msg.header.stamp = ros::Time::now();
+        img_msg.header.frame_id = "/image";
+        img_msg.image = debug_image;
+        img_msg.encoding = sensor_msgs::image_encodings::BGR8;
+        pub_debug_images_.publish(img_msg.toImageMsg());
+    }
 }
-
 }

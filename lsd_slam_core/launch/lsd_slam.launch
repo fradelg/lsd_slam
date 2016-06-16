@@ -1,38 +1,11 @@
 <launch>
 
-<!-- 
-  <include file="$(find ueye)/launch/nodelets.launch"/>
-  <param name="/camera_nodelet/pixel_clock" value="33"/>
-  <param name="/camera_nodelet/frame_rate" value="60"/>
-  <param name="/camera_nodelet/color" value="0"/>
-  <param name="/camera_nodelet/gain" value="100"/>
--->
-  <node name="lsd_slam_visualizer" pkg="lsd_slam_visualizer" type="visualizer" output="screen" >
-  </node>
-
-  <node name="lsd_slam_viewer" pkg="lsd_slam_viewer" type="viewer" output="screen" >
-  </node>
-
-  <!-- ns="$(arg camera)"<arg name="camera" default="usb_cam" /> -->
   <node name="lsd_slam_core" pkg="lsd_slam_core" type="live_slam" output="screen"  >
-    <remap from="/image" to="/image_raw" /> 
-    <!-- <remap from="/camera_info" to="/usb_cam/camera_info" /> -->
-    <param name="calib" value="$(find rp_camera)/calib/ueye_camera_2_8mm.cfg" />      
+    <remap from="/image" to="/usb_cam/image_raw" />
+		<!-- <remap from="/camera_info" to="/usb_cam/camera_info" /> -->
+    <param name="calib" value="/home/fradelg/dev/rec3d/data/lsd-creative_hd_webcam-atan.cfg" />
   </node>
-  <!-- 
-  rosrun lsd_slam_core live_slam image:=/image_raw _calib:=/home/flluo/catkin_ws/packages/rp_camera/calib/ueye_camera_2_8mm.cfg 
-  -->
 
-<!-- 
+  <node name="lsd_slam_viewer" pkg="lsd_slam_viewer" type="viewer" output="screen" />
 
-reference:
-
-- [Roslaunch Nodes in Valgrind or GDB](http://wiki.ros.org/roslaunch/Tutorials/Roslaunch%20Nodes%20in%20Valgrind%20or%20GDB) 
-  e.g.
-
-    - launch-prefix="valgrind -leak-check=yes"
-    - launch-prefix="gdb -ex run -args" 
-    - launch-prefix="/usr/bin/xterm -rv -e gdb -ex run -args"
-
--->
 </launch>

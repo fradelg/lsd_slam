@@ -12,9 +12,7 @@ set( MESSAGE_DEPENDENCIES
 
 # Find dependencies
 find_package(catkin REQUIRED
-	COMPONENTS
-	message_generation
-	${MESSAGE_DEPENDENCIES} 
+	COMPONENTS message_generation	${MESSAGE_DEPENDENCIES} 
 )
 
 # Add message files
@@ -33,4 +31,12 @@ add_message_files(
 generate_messages(DEPENDENCIES ${MESSAGE_DEPENDENCIES})
 
 # Declare run-time dependencies
-catkin_package( CATKIN_DEPENDS message_runtime ${MESSAGE_DEPENDENCIES})
+catkin_package(CATKIN_DEPENDS message_runtime ${MESSAGE_DEPENDENCIES})
+
+# Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
+

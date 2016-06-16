@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0)
 project(lsd_slam_core)
 
 # Set default build type.  Options are:
@@ -8,100 +8,38 @@ project(lsd_slam_core)
 #  RelWithDebInfo : w/ debug symbols, w/ optimization
 #  MinSizeRel     : w/o debug symbols, w/ optimization, stripped binaries
 IF(NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE Release)
+    SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
+# Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   cv_bridge
   dynamic_reconfigure
-  lsd_slam_viewer  
-  rosbag
-  roslib
   sensor_msgs
   image_transport
+  roscpp
 )
 
-## System dependencies are found with CMake's conventions
-find_package(cmake_modules REQUIRED)
+# System dependencies are found with CMake's conventions
 find_package(Eigen3 REQUIRED)
 find_package(X11 REQUIRED)
 include(cmake/FindG2O.cmake)
 include(cmake/FindSuiteParse.cmake)
 
+message("-- CHOLMOD_INCLUDE_DIR : " ${CHOLMOD_INCLUDE_DIR})
+message("-- CSPARSE_INCLUDE_DIR : " ${CSPARSE_INCLUDE_DIR})
+message("-- G2O_INCLUDE_DIR : " ${G2O_INCLUDE_DIR})
+
 # FabMap
-# uncomment this part to enable fabmap
 #add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/openFabMap)
 #include_directories(${PROJECT_SOURCE_DIR}/thirdparty/openFabMap/include)
 #add_definitions("-DHAVE_FABMAP")
 #set(FABMAP_LIB openFABMAP )
 
-# SSE flags
-add_definitions("-DUSE_ROS")
-add_definitions("-DENABLE_SSE")
-
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
-
-################################################
-## Declare ROS messages, services and actions ##
-################################################
-
-## To declare and build messages, services or actions from within this
-## package, follow these steps:
-## * Let MSG_DEP_SET be the set of packages whose message types you use in
-##   your messages/services/actions (e.g. std_msgs, actionlib_msgs, ...).
-## * In the file package.xml:
-##   * add a build_depend and a run_depend tag for each package in MSG_DEP_SET
-##   * If MSG_DEP_SET isn't empty the following dependencies might have been
-##     pulled in transitively but can be declared for certainty nonetheless:
-##     * add a build_depend tag for "message_generation"
-##     * add a run_depend tag for "message_runtime"
-## * In this file (CMakeLists.txt):
-##   * add "message_generation" and every package in MSG_DEP_SET to
-##     find_package(catkin REQUIRED COMPONENTS ...)
-##   * add "message_runtime" and every package in MSG_DEP_SET to
-##     catkin_package(CATKIN_DEPENDS ...)
-##   * uncomment the add_*_files sections below as needed
-##     and list every .msg/.srv/.action file to be processed
-##   * uncomment the generate_messages entry below
-##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
-
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
-
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
-
-## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
-
-## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   sensor_msgs
-# )
-
 ## Generate code for the dynamic reconfigure files
 generate_dynamic_reconfigure_options(
-  cfg/LSDDebugParams.cfg 
+  cfg/LSDDebugParams.cfg
   cfg/LSDParams.cfg
 )
 
@@ -115,35 +53,36 @@ generate_dynamic_reconfigure_options(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
   LIBRARIES lsdslam
-#  CATKIN_DEPENDS cv_bridge dynamic_reconfigure lsd_slam_viewer rosbag roslib sensor_msgs
-#  DEPENDS system_lib
+  CATKIN_DEPENDS cv_bridge dynamic_reconfigure lsd_slam_viewer roslib sensor_msgs
+  DEPENDS system_lib Eigen3 SuiteSparse g2o
 )
 
 ###########
 ## Build ##
 ###########
 
+# SSE flags
+add_definitions("-DUSE_ROS")
+add_definitions("-DENABLE_SSE")
+
 # Also add some useful compiler flag
 set(CMAKE_CXX_FLAGS
-   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++0x"
-) 
+   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++11"
+)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
-  src/
-  thirdparty/Sophus
   ${CSPARSE_INCLUDE_DIR} #Has been set by SuiteParse
   ${CHOLMOD_INCLUDE_DIR} #Has been set by SuiteParse
+  ${PROJECT_SOURCE_DIR}/src/
 )
 
 # Set source files
-set(lsd_SOURCE_FILES
+set(SOURCE_FILES
   src/DataStructures/Frame.cpp
   src/DataStructures/FramePoseStruct.cpp
   src/DataStructures/FrameMemory.cpp
@@ -159,23 +98,20 @@ set(lsd_SOURCE_FILES
   src/Tracking/Relocalizer.cpp
   src/Tracking/SE3Tracker.cpp
   src/Tracking/TrackingReference.cpp
-  src/IOWrapper/Timestamp.cpp
   src/GlobalMapping/FabMap.cpp
   src/GlobalMapping/KeyFrameGraph.cpp
   src/GlobalMapping/g2oTypeSim3Sophus.cpp
   src/GlobalMapping/TrackableKeyFrameSearch.cpp
-)
-set(SOURCE_FILES
-  ${lsd_SOURCE_FILES}
+  src/IOWrapper/Timestamp.cpp
   src/IOWrapper/ROS/ROSImageStreamThread.cpp
   src/IOWrapper/ROS/ROSOutput3DWrapper.cpp
   src/IOWrapper/OpenCV/ImageDisplay_OpenCV.cpp
 )
 
-## Declare a cpp library
+## Build the shared library
 add_library(lsd_slam SHARED ${SOURCE_FILES})
 
-## Declare a cpp executable
+## Declare cpp executables
 add_executable(live_slam src/main_live_odometry.cpp)
 add_executable(dataset src/main_on_images.cpp)
 
@@ -186,54 +122,46 @@ add_dependencies(live_slam ${${PROJECT_NAME}_EXPORTED_TARGETS})
 add_dependencies(dataset ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(lsd_slam ${FABMAP_LIB} ${G2O_LIBRARIES} ${catkin_LIBRARIES} ${CSPARSE_LIBRARY}) 
-target_link_libraries(live_slam lsd_slam ${catkin_LIBRARIES} ${G2O_LIBRARIES} ${X11_LIBRARIES} )
-target_link_libraries(dataset lsd_slam ${catkin_LIBRARIES} ${G2O_LIBRARIES})
+target_link_libraries(lsd_slam
+  ${FABMAP_LIB}
+  ${G2O_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${CSPARSE_LIBRARY}
+)
+
+target_link_libraries(live_slam lsd_slam
+  ${catkin_LIBRARIES}
+  ${G2O_LIBRARIES}
+  ${X11_LIBRARIES}
+)
+
+target_link_libraries(dataset lsd_slam
+  ${catkin_LIBRARIES}
+  ${G2O_LIBRARIES}
+)
 
 #############
 ## Install ##
 #############
 
-# all install targets should use catkin DESTINATION variables
-# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
-
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
 ## Mark executables and/or libraries for installation
-# install(TARGETS lsd_slam_core lsd_slam_core_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(TARGETS lsd_slam live_slam dataset
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
+# Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
-
-#############
-## Testing ##
-#############
-
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_lsd_slam_core.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
+install(FILES
+  calib/OpenCV_example_calib.cfg
+  calib/FOV_example_calib.cfg
+  launch/lsd_slam.launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

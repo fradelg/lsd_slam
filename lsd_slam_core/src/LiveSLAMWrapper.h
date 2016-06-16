@@ -30,72 +30,60 @@
 #include "util/SophusUtil.h"
 
 namespace cv {
-	class Mat;
+class Mat;
 }
 
-
-
-namespace lsd_slam
-{
+namespace lsd_slam {
 
 class SlamSystem;
 class LiveSLAMWrapperROS;
 class InputImageStream;
 class Output3DWrapper;
 
+struct LiveSLAMWrapper : public Notifiable {
+    friend class LiveSLAMWrapperROS;
 
-struct LiveSLAMWrapper : public Notifiable
-{
-friend class LiveSLAMWrapperROS;
 public:
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-	LiveSLAMWrapper(InputImageStream* imageStream, Output3DWrapper* outputWrapper);
+    LiveSLAMWrapper(InputImageStream* imageStream, Output3DWrapper* outputWrapper);
 
-	/** Destructor. */
-	~LiveSLAMWrapper();
-	
-	
-	/** Runs the main processing loop. Will never return. */
-	void Loop();
-	
-	/** Requests a reset from a different thread. */
-	void requestReset();
-	
-	/** Resets everything, starting the odometry from the beginning again. */
-	void resetAll();
+    /** Destructor. */
+    ~LiveSLAMWrapper();
 
-	/** Callback function for new RGB images. */
-	void newImageCallback(const cv::Mat& img, Timestamp imgTime);
+    /** Runs the main processing loop. Will never return. */
+    void Loop();
 
-	/** Writes the given time and pose to the outFile. */
-	void logCameraPose(const SE3& camToWorld, double time);
-	
-	
-	inline SlamSystem* getSlamSystem() {return monoOdometry;}
-	
+    /** Requests a reset from a different thread. */
+    void requestReset();
+
+    /** Resets everything, starting the odometry from the beginning again. */
+    void resetAll();
+
+    /** Callback function for new RGB images. */
+    void newImageCallback(const cv::Mat& img, Timestamp imgTime);
+
+    /** Writes the given time and pose to the outFile. */
+    void logCameraPose(const SE3& camToWorld, double time);
+
+    inline SlamSystem* getSlamSystem() { return monoOdometry; }
+
 private:
-	
-	InputImageStream* imageStream;
-	Output3DWrapper* outputWrapper;
+    InputImageStream* imageStream;
+    Output3DWrapper* outputWrapper;
 
-	// initialization stuff
-	bool isInitialized;
+    // initialization stuff
+    bool isInitialized;
 
+    // monoOdometry
+    SlamSystem* monoOdometry;
 
+    std::string outFileName;
+    std::ofstream* outFile;
 
-	// monoOdometry
-	SlamSystem* monoOdometry;
+    float fx, fy, cx, cy;
+    int width, height;
 
-	std::string outFileName;
-	std::ofstream* outFile;
-	
-	float fx, fy, cx, cy;
-	int width, height;
-
-
-	int imageSeqNumber;
-
+    int imageSeqNumber;
 };
-
 }

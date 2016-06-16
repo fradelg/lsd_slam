@@ -24,46 +24,37 @@
 #include "util/SophusUtil.h"
 
 namespace cv {
-	class Mat;
+class Mat;
 }
 
-namespace lsd_slam
-{
+namespace lsd_slam {
 
 class Frame;
 
 class KeyFrameGraph;
 class Frame;
 
-
-
 /**
  * Virtual 3D display object.
  */
-class Output3DWrapper
-{
+class Output3DWrapper {
 public:
-	virtual ~Output3DWrapper() {};
+    virtual ~Output3DWrapper(){};
 
+    virtual void publishKeyframeGraph(KeyFrameGraph* graph){};
 
+    // publishes a keyframe. if that frame already existis, it is overwritten, otherwise it is added.
+    virtual void publishKeyframe(Frame* kf){};
 
+    // published a tracked frame that did not become a keyframe (yet; i.e. has no depth data)
+    virtual void publishTrackedFrame(Frame* kf){};
 
+    // publishes graph and all constraints, as well as updated KF poses.
+    virtual void publishTrajectory(std::vector<Eigen::Matrix<float, 3, 1> > trajectory, std::string identifier){};
+    virtual void publishTrajectoryIncrement(Eigen::Matrix<float, 3, 1> pt, std::string identifier){};
 
-	virtual void publishKeyframeGraph(KeyFrameGraph* graph) {};
+    virtual void publishDebugInfo(Eigen::Matrix<float, 20, 1> data){};
 
-	// publishes a keyframe. if that frame already existis, it is overwritten, otherwise it is added.
-	virtual void publishKeyframe(Frame* kf) {};
-
-	// published a tracked frame that did not become a keyframe (yet; i.e. has no depth data)
-	virtual void publishTrackedFrame(Frame* kf) {};
-
-	// publishes graph and all constraints, as well as updated KF poses.
-	virtual void publishTrajectory(std::vector<Eigen::Matrix<float, 3, 1>> trajectory, std::string identifier) {};
-	virtual void publishTrajectoryIncrement(Eigen::Matrix<float, 3, 1> pt, std::string identifier) {};
-
-	virtual void publishDebugInfo(Eigen::Matrix<float, 20, 1> data) {};
-
-	virtual void publishDebugImage(const cv::Mat& debug_image) {};
-
+    virtual void publishDebugImage(const cv::Mat& debug_image){};
 };
 }
