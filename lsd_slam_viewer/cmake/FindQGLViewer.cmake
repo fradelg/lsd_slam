@@ -1,19 +1,17 @@
-# Need to find both Qt4 and QGLViewer if the QQL support is to be built
-FIND_PACKAGE(Qt4 COMPONENTS QtCore QtXml QtOpenGL QtGui)
-include(${QT_USE_FILE})
-
 FIND_PATH(QGLVIEWER_INCLUDE_DIR qglviewer.h
-    /usr/include/QGLViewer
-    /opt/local/include/QGLViewer
-    /usr/local/include/QGLViewer
-    /sw/include/QGLViewer
-    ENV QGLVIEWERROOT
-  )
+  /usr/local/include/QGLViewer
+  /usr/include/QGLViewer
+  /opt/local/include/QGLViewer
+  /sw/include/QGLViewer
+  ENV QGLVIEWERROOT
+)
+
+message(STATUS "Found QGLViewer: ${QGLVIEWER_INCLUDE_DIR}")
 
 find_library(QGLVIEWER_LIBRARY_RELEASE
-  NAMES qglviewer-qt4 QGLViewer-qt4 qglviewer QGLViewer QGLViewer2
-  PATHS /usr/lib
-        /usr/local/lib
+  NAMES qglviewer QGLViewer QGLViewer2
+  PATHS /usr/local/lib
+        /usr/lib
         /opt/local/lib
         /sw/lib
         ENV QGLVIEWERROOT
@@ -21,8 +19,9 @@ find_library(QGLVIEWER_LIBRARY_RELEASE
         ENV LIBRARY_PATH
   PATH_SUFFIXES QGLViewer QGLViewer/release
 )
+
 find_library(QGLVIEWER_LIBRARY_DEBUG
-  NAMES dqglviewer dQGLViewer dQGLViewer2 QGLViewerd2
+  NAMES dqglviewer QGLViewerd dQGLViewer2 QGLViewerd2
   PATHS /usr/lib
         /usr/local/lib
         /opt/local/lib
@@ -44,4 +43,3 @@ endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(QGLVIEWER DEFAULT_MSG
   QGLVIEWER_INCLUDE_DIR QGLVIEWER_LIBRARY)
-

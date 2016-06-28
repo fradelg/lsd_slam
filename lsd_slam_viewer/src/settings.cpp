@@ -2,7 +2,7 @@
 * This file is part of LSD-SLAM.
 *
 * Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam> 
+* For more information see <http://vision.in.tum.de/lsdslam>
 *
 * LSD-SLAM is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -20,13 +20,10 @@
 
 #include "settings.h"
 
-
-
-// new:
 float pointTesselation = 1;
 float lineTesselation = 2;
 
-bool keepInMemory=true;
+bool keepInMemory = true;
 bool showKFCameras = true;
 bool showKFPointclouds = true;
 bool showConstraints = true;
@@ -43,5 +40,4 @@ bool saveAllVideo = false;
 
 int numRefreshedAlready = 0;
 
-// cut-off after this
 double lastFrameTime = 1e15;
